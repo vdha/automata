@@ -351,7 +351,8 @@ def replace_chars(char_ls, new_char, my_string):
 
 
 def raxml_to_figtree(tree_string):
-    """Parses raxml output, with bootstrap support values, into a format that
+    """WIP.
+    Parses raxml output, with bootstrap support values, into a format that
     Figtree can understand.
     """
     pattern = re.compile(r'([:]\d+[.]\d+)[[](\d+)[]]')

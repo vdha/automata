@@ -12,6 +12,12 @@ import time
 We should find them one, or make them one, at some point.
 """
 
+def sample_by_col(df, col, n_sample):
+    df1 = df.groupby(col, group_keys=False).apply(lambda g: g.sample(n_sample)
+                                                  if len(g) > n_sample else g)
+    return df1
+
+
 def translate_codon(triplet):
     """Translates an amino acid triplet into a codon.
     A triple-nuc gap is explicitly handled as a codon gap.
@@ -122,13 +128,14 @@ def choose_string_sections(seq, coords_ls):
     return section_ls
 
 
-def format_date(dmy):
+def format_date(dmy, input_date_fmt="%d/%m/%y"):
     """Because Excel keeps reformatting dates into dd/mm/yy format,
     this function converts it into yyyy-mm-dd for printing purposes.
 
     Params
     ------
-    dmy: str; a date in the format dd/mm/yy.
+    dmy: str; a date in the format dd/mm/yyyy.
+    input_date_fmt: format of the input date.
 
     Returns
     -------
@@ -276,3 +283,38 @@ def to_calendar_year(cdate, return_type="date"):
         result = full_date
 
     return result
+
+
+def wrap_get_hyphy_relax(fn_in, fn_out,
+                         write_out="",
+                         test_set="labelled",
+                         run_type="minimal"):
+    """WIP.
+    Writes out a run.txt file to bash.
+
+    Params
+    ------
+    fn_in: str; input file name. Should be the list of sequences in fasta format,
+    followed by a tree at the bottom.
+    fn_out: str; hyphy STDOUT output file name.
+    write_out: str; file name to write cmd to
+    test_set: str; "full" or "labeled". If 'full'('labeled'), analysis is done on
+    all(only the labeled) set of branches.
+    test: "minimal" or "full". If "minimal"("full"), analysis is with only 2 (4)
+    models.
+    """
+    test_set_num = 1
+    if test_set=="labelled":
+        test_set_num = 2
+
+    run_type_num = 1
+    if run_type == "minimal":
+        run_type_num = 2
+
+    cmd = "(echo 1; echo 7; echo 1; echo "+fn_in+"; echo y; echo "+test_set_num+"; echo "+run_type_num+"; echo 0.1) | HYPHYMP > "+fn_out
+
+    if len(write_out) > 0:
+        with open(write_out, 'w') as f:
+            f.write("%s" % write_out)
+
+    return cmd
