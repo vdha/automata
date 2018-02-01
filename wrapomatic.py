@@ -4,6 +4,41 @@ at least I.)
 External programs wrapped:
 HYPHYMD (MacOS), version ???
 """
+class HyphySlac:
+    """Wrapper class to call HYPHY SLAC.
+    """
+    def __init__(self):
+        """
+        self.branch_test_set
+        --------------------
+        Choose the set of branches to test for selection.
+        1. [**All**] Include all branches in the analysis
+        2. [**Internal**] Include all internal branches in the analysis
+        3. [**Leaves**] Include all leaf branches in the analysis
+        4. [**Unlabeled branches**] Set of 866 unlabeled branches
+        5. [**test**] Set test with 49 branches
+
+        self.num_ancestors
+        ------------------
+        Select the no. of samples used to assess
+        ancestral reconstruction uncertainty. Choose 0 to skip.
+        Permissible range = [0,100000], default value = 100, integer.
+        self.p_val_threshold: Select the p-value threshold to use when testing
+        for selection. Permissible range = [0,1], default value = 0.1.
+        """
+        self.analysis_type="1" # Selection analysis
+        self.analysis_subtype="3" # SLAC
+        self.genetic_code="1" # Universal genetic code
+        self.data_file = ""
+        self.use_tree="y" # Use the tree file in the input data_file.
+        self.branch_test_set="1".
+        self.num_ancestors="100"
+        self.p_val_threshold="0.1"
+
+    def get_cmd(self, outfile_suffix="_results.out"):
+        """WIP"""
+        print("wip")
+
 
 class HyphyRelax:
     """Wrapper class to call HYPHY RELAX. So far, only supports 1 input file
