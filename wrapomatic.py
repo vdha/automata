@@ -1,11 +1,11 @@
 import subprocess
 import time
+import json
 
-"""An OOP library! OMG! Wraps various other executables to make I/O easier (or
-at least I.)
+"""An OOP library! OMG!
 
 External programs wrapped:
-HYPHYMD (MacOS), version ???
+HYPHY 2.3.720180108beta(MP). Built and tested on a MacOS X (High Sierra),
 """
 class HyphySlac:
     """Wrapper class to call HYPHY SLAC.
@@ -139,3 +139,62 @@ class HyphyRelax:
         print("branch_test_set = %s" % self.branch_test_set)
         print("relax_analysis_type = %s" % self.relax_analysis_type)
         print("output_suffix = %s" % self.output_suffix)
+
+
+def parse_relax_json(fn_in, verbose=True):
+    """Reads the JSON output of a default HyphyRelax.run(), and prints out the
+    output. WARNING: Only built and tested for default run params!
+    """
+    json_data=open(fn_in).read()
+    data = json.loads(json_data)
+
+    fits_dict = data.get("fits")
+    dict1 = fits_dict.get("MG94xREV with separate rates for branch sets")
+    m0 = fits_dict.get("RELAX null")
+    m1 = fits_dict.get("RELAX alternative")
+    if verbose:
+        print("GLOBAL dNdS VALUES")
+        print("-"*20)
+        print("AIC-c = %s" % dict1.get("AIC-c"))
+        print("LogL = %s" % dict1.get("Log Likelihood"))
+        print("dNdS ratio for *Reference* = %s" %
+              dict1.get("Rate Distributions").get("non-synonymous/synonymous rate ratio for *Reference*")[0][0])
+        print("dNdS ratio for *Test* = %s" %
+             dict1.get("Rate Distributions").get("non-synonymous/synonymous rate ratio for *Test*")[0][0])
+        print("")
+
+        print("M0: k = 1")
+        print("-"*20)
+        print("REFERENCE & TEST BRANCHES")
+        print("AIC-c = %.5f" % m0.get("AIC-c"))
+        print("LogL = %.5f" % m0.get("Log Likelihood"))
+        m0_ref_dict = m0.get("Rate Distributions").get("Reference")
+        for k in list(m0_ref_dict.keys()):
+            print("Class %s: omega = %.5f, proportion = %.5f%%" % (k,
+                                                             m0_ref_dict[k]["omega"],
+                                                             m0_ref_dict[k]["proportion"]*100))
+        print("")
+
+        print("M1: k != 1")
+        print("-"*20)
+        print("REFERENCE & TEST BRANCHES")
+        print("AIC-c = %.5f" % m1.get("AIC-c"))
+        print("LogL = %.5f" % m1.get("Log Likelihood"))
+        m1_ref_dict = m1.get("Rate Distributions").get("Reference")
+        m1_test_dict = m1.get("Rate Distributions").get("Test")
+        for k in list(m1_ref_dict.keys()):
+            print("Class %s: omega = %.5f, proportion = %.5f%%" % (k,
+                                                             m1_ref_dict[k]["omega"],
+                                                             m1_ref_dict[k]["proportion"]*100))
+        print("")
+        for k in list(m1_test_dict.keys()):
+            print("Class %s: omega = %.5f, proportion = %.5f%%" % (k,
+                                                             m1_test_dict[k]["omega"],
+                                                             m1_test_dict[k]["proportion"]*100))
+
+        print("")
+        print("LRT RESULTS")
+        print("-"*20)
+        print("LRT = %.5f" % data.get("test results").get("LRT"))
+        print("p-value = %.5f" % data.get("test results").get("p-value"))
+        print("k = %.5f" % data.get("test results").get('relaxation or intensification parameter'))
