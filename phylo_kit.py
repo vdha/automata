@@ -12,52 +12,6 @@ import time
 
 from Bio import Phylo
 
-def get_tree_names(tree_string, verbose=False):
-    """Extracts the names of nodes from a tree string in newick format.
-    Note that internal nodes are sometimes blank, or are sometimes numbers,
-    and I have no idea why. Need a more structural way of identifying tips.
-
-    Params
-    ------
-    tree_string: str; a tree string in newick format
-
-    Returns
-    -------
-    d_nodes: dataframe of node names, and node types.
-    """
-    print("WARNING: HACKY AND EXPERIMENTAL.")
-
-    # sometimes leaves the enclosing symbols for some reason
-    pattern = re.compile(r'[(),][\s\S]*?(?=:|;)')
-
-    names_ls = re.findall(pattern, tree_string)
-    for i in range(len(names_ls)):
-        for char in ["(", ")", ","]:
-            names_ls[i] = names_ls[i].replace(char, "")
-
-    if verbose:
-        print("no. of nodes = %s" % len(names_ls))
-
-    for i in range(len(names_ls)):
-        nm = names_ls[i]
-        if (len(nm) == 0) or _is_number(nm):
-            names_ls[i] = [nm, "node"]
-        elif len(nm) != 0 or (_is_number(nm) == False):
-            names_ls[i] = [nm, "tip"]
-    d_nodes = pd.DataFrame(data=names_ls, columns=["name", "node_type"])
-
-    return d_nodes
-
-
-def _is_number(s):
-    """Checks if a string s is actually a number.
-    Used in get_tree_names
-    """
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
 
 
 def prep_nexus_contents(tree_string):
