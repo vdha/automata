@@ -2,10 +2,13 @@ import subprocess
 import time
 import json
 
-"""An OOP library! OMG!
+"""An OOP library! OMG! Built and tested on a MacOS X (High Sierra).
+This lib should be kept separate from other tools, because of its vulnerability
+to dependency hell.
 
 External programs wrapped:
-HYPHY 2.3.720180108beta(MP). Built and tested on a MacOS X (High Sierra),
+HYPHY 2.3.720180108beta(MP).
+baseml (PAML v4.8a, Aug 2014) - treesub.jar emulator only.
 """
 class HyphySlac:
     """Wrapper class to call HYPHY SLAC.

@@ -13,7 +13,6 @@ import time
 from Bio import Phylo
 
 
-
 def prep_nexus_contents(tree_string):
     """Preps a nexus format around a tree string.
     """
@@ -35,18 +34,6 @@ def prep_nexus_contents(tree_string):
 
     return nex_contents
 
-
-import time
-import numpy as np
-import pandas as pd
-import itertools
-
-from Bio import Phylo
-
-"""
-A bunch of cookbook or wrapper functions related to Bio.Phylo. Not strictly
-related to baltic3, but I'm putting them here for git saving convenience.
-"""
 
 def tip_to_tip_distance(my_tree, tip1, tip2):
     """Computes the tip-to-mrca-to-tip distance between tip1 and tip2.
