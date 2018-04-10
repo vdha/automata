@@ -174,7 +174,23 @@ def main_calls():
     subprocess.run(cmd, shell=True)
 
 
-def main_parse_rst():
+def main_parse_rst(rst_path):
+    """Public function call that procs _rst_get_tree() and
+    _rst_get_ancestral_sequences(). WIP, because I'm still trying to pick a
+    standard output.
+
+    PARAMS
+    ------
+    rst_path: str; path to rst file.
+
+    RETURNS
+    -------
+    WIP
+    """
+    print("WIP")
+
+
+def _rst_get_tree(rst_path):
     """The `rst` file output by `baseml` has a newick string with node labels '
     but no branch lengths, and another newick string with branch lengths but
     no node labels. Combine them both, and write out a file `tree0.tre`, that
@@ -182,8 +198,16 @@ def main_parse_rst():
 
     The node labels are called `node#`, or `REALNAME`, by the actual treesub
     program.
+
+    PARAMS
+    ------
+    rst_path: str; path to rst file.
+
+    RETURNS
+    -------
+    tree0: rst tree.
     """
-    with open("rst") as f:
+    with open(rst_path) as f:
         rst_contents = f.readlines()
     rst_contents = [x.strip() for x in rst_contents]
 
@@ -207,12 +231,73 @@ def main_parse_rst():
         cl = inodes_ls0[i]
         cl.name = str(inodes_ls1[i].confidence)
 
-    Phylo.write(tree0, "tree0.tre", "newick")
+    return tree0
+
+
+def _rst_get_ancestral_sequences(rst_path):
+    """Parses the 'rst' file for the internal node sequences, by searching for
+    'List of extant and reconstructed sequences'.
+
+    PARAMS
+    ------
+    rst: str; path to rst file.
+
+    RETURNS
+    -------
+    ar_contents: list of rows of str; nt sequences of tips and internal nodes.
+    Each row is in the format ['seq_index', 'nt_sequence']
+    """
+    with open(rst_path) as f:
+        contents = f.readlines()
+    contents = [x.strip() for x in contents]
+    rst_contents = []
+    for line in contents:
+        if line != "":
+            rst_contents.append(line)
+
+    for i in range(len(rst_contents)):
+        if rst_contents[i] == "List of extant and reconstructed sequences":
+            idx_start = i+2
+
+    ar_contents = []
+    line = rst_contents[idx_start]
+    while "Overall accuracy of the" not in line:
+        line = rst_contents[idx_start]
+        ar_contents.append(line)
+        idx_start +=1
+    ar_contents = ar_contents[:-1]
+
+    # Some wrangling to get rid of whitespaces
+    # Use '*' as a placeholder, to keep string lengths constant
+    ar_contents2 = []
+    for i in range(len(ar_contents)):
+        line = ar_contents[i]
+        for j in range(len(line)):
+            if j < len(line):
+                if (line[j] == " ") and (line[j+1] != " "):
+                    line = str_replace_in_place(line, j, "*")
+        ar_contents2.append(line)
+
+    # Get rid of the placeholder
+    for i in range(len(ar_contents2)):
+        #print(ar_contents2[i])
+        ar_contents2[i] = ar_contents2[i].replace("*", "")
+
+    # Override ar_contents
+    ar_contents = []
+    for row in ar_contents2:
+        new_line = []
+        for elem in row.split(" "):
+            if len(elem) > 0:
+                new_line.append(elem)
+        ar_contents.append(new_line)
+
+    return ar_contents
 
 
 def biopy_translate_nuc(seq_nuc):
     """Translate a nucleotide sequence. Unknown nucleotide characters will be
-    translated to a codon X.
+    translated to a codon X. First turns all gaps '-' into 'N'.
 
     PARAMS
     ------
@@ -231,6 +316,8 @@ def biopy_translate_nuc(seq_nuc):
     >> Deprecation warning: this will become an error in future!
     >> 'R'
     """
+    seq_nuc = seq_nuc.replace("-", "N")
+
     my_seq = Seq(seq_nuc, generic_rna)
     seq_aa = str(my_seq.translate())
     return seq_aa
@@ -352,18 +439,18 @@ def get_aa_diff(target, query):
     -------
     aa_diff_ls: list of aa differences, expressed as "target" to "query", and the index.
     """
-    print("DEPRECATION WARNING: this function will be deprecated in favour of get_aa_changes()")
+    print("DEPRECATED: Use get_aa_changes() instead.")
 
-    if len(target) != len(query):
-        print("WARNING: length of input strings are different!")
+    #if len(target) != len(query):
+    #    print("WARNING: length of input strings are different!")
 
-    aa_diff_ls = []
-    for i in range(len(target)):
-        if target[i] != query[i]:
-            # set index to 1 because aa coords are 1-based
-            aa_diff_row = "".join([target[i], str(i+1), query[i]])
-            aa_diff_ls.append(aa_diff_row)
-    return aa_diff_ls
+    #aa_diff_ls = []
+    #for i in range(len(target)):
+    #    if target[i] != query[i]:
+    #        # set index to 1 because aa coords are 1-based
+    #        aa_diff_row = "".join([target[i], str(i+1), query[i]])
+    #        aa_diff_ls.append(aa_diff_row)
+    #return aa_diff_ls
 
 
 def get_parent_name(my_tree, node_name):

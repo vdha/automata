@@ -150,3 +150,59 @@ def get_clade_labels(my_tree, ref_names_ls, verbose=True):
     df["min_dist"] = df.loc[:, df_cols].min(axis=1)
 
     return df
+
+
+def get_consensus_seq(seq_ls, th=0.95):
+    """Iterate over the columns (amino acids) of aa_array. Form a consensus seq which consists
+    of the aas which are common to at least th% of the sequences (rows) in aa_array. 
+    Otherwise, return '-'. 
+    
+    PARAMS
+    ------
+    seq_ls: list of str. Must all be of the same length.
+    th: majority vote threshold, ranges between 0 and 1.
+    
+    RETURNS
+    -------
+    consensus_seq: consensus sequence. 
+    """
+    # All sequences must be of the same length!
+    try: 
+        row_len_ls = [len(x) for x in seq_ls]
+        seq_len_arr, counts_arr = np.unique(np.array(row_len_ls), return_counts=True)
+        if len(seq_len_arr) > 1:
+            raise my_exception
+    except my_exception as e:
+        print("ERROR: not all sequences are of the same length!")
+    else:
+        # Convert the list of input sequences into an array of shape (n_seqs, seq_len)
+        contents = [list(x) for x in seq_ls]
+        contents = np.array(contents)
+
+        idx_ls = []
+        consensus_seq = ""
+        for i in range(len(contents[0])):
+            elem_arr, counts_arr = np.unique(contents[:, i], return_counts=True)
+            counts_arr = counts_arr/len(d_temp)
+            #print(elem_arr, counts_arr)
+            new_aa = "-"
+            new_idx = -1
+            if check_value_in_list(th, counts_arr):
+                new_idx = i
+                new_aa = elem_arr[np.argmax(counts_arr)]
+
+            idx_ls.append(new_idx)
+            consensus_seq = consensus_seq + new_aa
+
+    return consensus_seq
+
+
+def _check_value_in_list(th, ls):
+    """Given a list of numbers ls, check if there's at least 1 value in ls > th.
+    So far, exclusively used by get_consensus_seq()
+    """
+    ls_bool = False
+    for num in ls:
+        if num > th:
+            ls_bool = True
+    return ls_bool
