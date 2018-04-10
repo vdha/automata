@@ -230,36 +230,6 @@ def get_meta_from_csv(path_meta, d0, meta_cols=["location"], verbose=True):
     return d0
 
 
-def get_seqs_from_fasta(df):
-    """A related operation to get_meta_from_csv(): this time, we add (or override)
-    a sequence column to a metadata df, instead of adding metadata columns to
-    a seq data df.
-    """
-    return "WIP"
-
-
-def get_meta_from_csv_v2(fn_meta, df, link_id, cols):
-    """Retrieves the metadata csv from fn_meta, and appends the requested columns to
-    df ('*' if not found). Uses link_id as the primary key.
-
-    Params
-    ------
-    fn_meta: path to metadata csv
-    df: an original dataframe to add new columns to. Can be just a name_id and seq data.
-    link_id: primary key identifier.
-    cols: columns requested from fn_meta
-
-    Returns
-    -------
-    dm: df and additional columns.
-    """
-    dm = pd.read_csv(fn_meta)
-    dm = dm[cols]
-    dm = pd.merge(df, dm, how="left", on=link_id)
-
-    return dm
-
-
 def location_split(loc_ls, max_loc_len=5, verbose=False):
     """Splits a list of locations, where each location is in the format:
     'continent/country/state/city/district', into an array of 5. Location
