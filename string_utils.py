@@ -6,6 +6,32 @@ import re
 
 from Bio import SeqIO
 
+
+def choose_string_sections(seq, coords_ls):
+    """Given a sequence seq, extract the relevant portions using the coords given in coords_ls. 
+    Hasn't been used for quite awhile, though.
+
+    Params
+    ------
+    seq: str. A nuc sequence.
+    coords_ls: list of lists, where each element list is a set of coordinates.
+
+    Returns
+    -------
+    sections_ls: list of string.
+
+    >> seq = "ACGTACGTACGT"
+    >> coords_ls = [[0, 4], [1, 5], [5, 8]]
+    >> choose_gene_sections(seq, coords_ls)
+    ['ACGT', 'CGTA', 'CGT']
+    """
+    section_ls = []
+    for coord in coords_ls:
+        s, t = coord
+        section_ls.append(seq[s:t])
+    return section_ls
+
+
 def string_similarity(a, b, method='hamming', score_matrix=1, verbose=True):
     """Computes string similarity for two strings, a and b, using some
     similarity method.
