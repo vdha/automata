@@ -38,7 +38,6 @@ def sample_by_col(df, col, n_sample):
     return df1
 
 
-
 def choose_string_sections(seq, coords_ls):
     """Given a sequence seq, extract the relevant portions using the coords given in coords_ls
 
