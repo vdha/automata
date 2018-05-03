@@ -85,7 +85,7 @@ def prep_fasta_contents(d0_in, header_cols, seq_col='seq', delimiter="|", previe
     return contents
 
 
-def write_fasta(fn_out, d_in, header_cols, seq_col="seq", delimiter="|", preview=0):
+def write_fasta(fn_out, d_in, header_cols, seq_col="seq", delimiter="|", preview=0, verbose=True):
     """Wrapper for prep_fasta_contents(), and does the additional step of
     writing out to a file.
 
@@ -96,7 +96,8 @@ def write_fasta(fn_out, d_in, header_cols, seq_col="seq", delimiter="|", preview
     seq_col: str. The name of the column which contains actual sequence data.
         default = 'seq'.
     preview: int. No. of records to preview after the function is finished.
-    fn_out: name of file to write out to.
+    fn_out: str; name of file to write out to.
+    verbose: bool; verbosity
 
     Returns
     -------
@@ -106,7 +107,8 @@ def write_fasta(fn_out, d_in, header_cols, seq_col="seq", delimiter="|", preview
     with open(fn_out, "w") as f:
         for line in contents:
             f.write("%s\n" % line)
-    print("Wrote to file %s" % fn_out)
+    if verbose:
+    	print("Wrote to file %s" % fn_out)
 
 
 def lookup_key(my_dict, val):
