@@ -9,7 +9,12 @@ to dependency hell.
 External programs wrapped:
 HYPHY 2.3.720180108beta(MP).
 baseml (PAML v4.8a, Aug 2014) - treesub.jar emulator only.
+
+For the HYPHY wrappers, there's generally a problem where hyphy fails silently, in which case the Python
+wrapper also fails silently, rather than printing an error inline. The user must watch the terminal 
+screen to check hyphy's progress.
 """
+
 class HyphySlac:
     """Wrapper class to call HYPHY SLAC.
     """

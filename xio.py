@@ -109,6 +109,26 @@ def write_fasta(fn_out, d_in, header_cols, seq_col="seq", delimiter="|", preview
     print("Wrote to file %s" % fn_out)
 
 
+def lookup_key(my_dict, val):
+    """Look up a value, val, from a dictionary of the format key:list_of_values. Values cannot appear in
+    multiple lists.
+    TO DO: exception handling!
+
+    Params
+    ------
+    my_dict: dictionary of the format k:list_of_values
+    val: value to lookup, to find corresponding key
+
+    Returns
+    -------
+    my_key: key which value belongs to
+    """
+    my_key = "*"
+    for k in list(my_dict.keys()):
+        if val in my_dict[k]:
+            my_key = k
+    return my_key
+
 
 def pivot_raw_tbl(df):
     """Pivots a GISAID dataframe of raw data such that each segment is its own column. That is, turns this:
