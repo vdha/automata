@@ -1,6 +1,11 @@
+import numpy as np
+import pandas as pd
 import subprocess
 import time
 import json
+import os
+
+import xio
 
 """An OOP library! OMG! Built and tested on a MacOS X (High Sierra).
 This lib should be kept separate from other tools, because of its vulnerability
@@ -9,6 +14,7 @@ to dependency hell.
 External programs wrapped:
 HYPHY 2.3.720180108beta(MP).
 baseml (PAML v4.8a, Aug 2014) - treesub.jar emulator only.
+cd-hit
 
 For the HYPHY wrappers, there's generally a problem where hyphy fails silently, in which case the Python
 wrapper also fails silently, rather than printing an error inline. The user must watch the terminal 
@@ -206,3 +212,113 @@ def parse_relax_json(fn_in, verbose=True):
         print("LRT = %.5f" % data.get("test results").get("LRT"))
         print("p-value = %.5f" % data.get("test results").get("p-value"))
         print("k = %.5f" % data.get("test results").get('relaxation or intensification parameter'))
+
+
+def spatiotemporal_subsample(df, col1, col2, out_fn, temp_path, out_cols_ls, cdh_th, cdh_c=1.0, verbose=True):
+    """Downsample a dataframe by cols col1 and col2, usually country/continent and cyear.
+    Requires an empty /temp folder for cd-hit to run in, which must be manually made before this; 
+    will explode if not found.
+
+    Params
+    ------
+    df: pandas dataframe to operate on.
+    col1: str; name of column 1 to partition from df. Usually "country", or "continent".
+    col2: str; name of column 2 to partition from df. Usually "cyear".
+    out_fn: str; output filename
+    temp_path: str; path name of temp folder. 
+    out_cols_ls: list of string. List of columns to write out to, for each partition. 
+    cdh_th: int; min num. of records in a given partition to trigger cd-hit proc.
+    cdh_c: float; similarity param, flag -c, in the cd-hit program. 
+    verbose: Bool; verbosity param.
+
+    TO DO
+    -----
+    Exception handling to check if cd-hit is installed. Run `cd-hit -h`, regex the STDOUT.
+    Find a way to grab the 'invalid names or sequences' from stderr. (or stdout?)
+    """
+
+    # Replace all '-' in the sequences with 'n', 
+    # because cd-hit automatically discards seqs with '-'
+    df["seq"] = df.apply(lambda row: str(row["seq"]).replace("-", "n"), axis=1)
+
+    col1_ls = list(set(df[col1]))
+    col2_ls = list(set(df[col2]))
+    col1_ls.sort()
+    col2_ls.sort()
+
+    # Make sure that there's a backslash at the end of temp_path
+    if temp_path[-1] != "/":
+        temp_path = temp_path + "/"
+
+    # Write out all partitions with nonzero length as temp files
+    if verbose:
+        print("Writing out initial temp files...", end="")
+    for c1 in col1_ls:
+        for c2 in col2_ls:
+            d_temp = df.loc[(df[col1]==c1) & (df[col2]==c2)]
+            fn_out_temp = "temp_"+c1+"_"+c2+"_"+str(len(d_temp))
+            
+            if len(d_temp) > 0:
+                xio.write_fasta(temp_path+fn_out_temp+".fas", d_temp, out_cols_ls, verbose=False)
+    if verbose:
+        print("Done!")
+
+    # cd-hit! 
+    # First grab all the temp files that just got written out
+    fn_ls = []
+    for fn in os.listdir(temp_path):
+        if fn[:4] == "temp":
+            fn_ls.append(fn)
+    fn_ls.sort()
+
+    fn_to_remove_ls = [] # this will comprise the filnames of files to remove, w/o the .fas extension
+    for fn in fn_ls:
+        fn_prefix = fn.split(".")[0] # get rid of the '.fas'
+        ncounts = int(fn_prefix.split("_")[-1])
+        if ncounts > int(cdh_th):
+            fn_to_remove_ls.append(fn_prefix)
+            cmd = "cd-hit -i "+temp_path+fn+" -o "+temp_path+fn_prefix+"_cdh.fas -c "+str(cdh_c)
+            if verbose:
+                print(cmd)
+            subprocess.run(cmd, shell=True)
+            
+            if verbose:
+                n_records0 = fn_prefix.split("_")[-1]
+                cmd = "grep -c '^>' "+temp_path+fn_prefix+"_cdh.fas"
+                rez = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
+                n_records1 = str(rez.stdout, 'utf-8').strip()
+                print("Reduced from %s to %s" % (n_records0, n_records1))
+
+    # Remove unwanted files - the old un-cdhitted file, and an excess .clstr.fas file output by cdhit
+    if verbose:
+        print("Removing unwanted files...", end="")
+    for fn_p in fn_to_remove_ls:
+        cmd = "rm "+temp_path+fn_p+".fas"
+        subprocess.run(cmd, shell=True)
+        
+        # Remove .clstr files
+        cmd = "rm "+temp_path+fn_p+"_cdh.fas.clstr"
+        subprocess.run(cmd, shell=True)
+    if verbose:
+        print("Done!")
+
+    # cat all the remaining temp files
+    cmd = "cat "+temp_path+"temp* > "+temp_path+out_fn
+    subprocess.run(cmd, shell=True)
+
+    cmd = "grep -c '^>' "+temp_path+out_fn
+    rez = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
+    n_records1 = str(rez.stdout, 'utf-8').strip()
+    if verbose:
+        print("Final no. of sequences = %s" % n_records1)
+        print("Wrote out final output to %s" % out_fn)
+
+
+    # Remove all the rest of the temp files
+    #for fn in os.listdir(temp_path):
+    #    if fn[:4] == "temp":
+    #        cmd = "rm temp/"+fn
+
+
+
+
