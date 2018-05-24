@@ -217,7 +217,7 @@ def parse_relax_json(fn_in, verbose=True):
 def spatiotemporal_subsample(df, col1, col2, out_fn, temp_path, out_cols_ls, cdh_th, cdh_c=1.0, verbose=True):
     """Downsample a dataframe by cols col1 and col2, usually country/continent and cyear.
     Requires an empty /temp folder for cd-hit to run in, which must be manually made before this; 
-    will explode if not found.
+    will fail (silently!) if not found.
 
     Params
     ------
