@@ -10,6 +10,7 @@ import datetime
 from datetime import timedelta
 import time
 
+import xio
 from Bio import Phylo
 
 
@@ -206,3 +207,65 @@ def _check_value_in_list(th, ls):
         if num > th:
             ls_bool = True
     return ls_bool
+
+
+def thin_tree(fn_tree, interval_n, incl, outgroup_nm="", verbose=True):
+    """Thins a rooted, ladderized tree by selecting/excluding every n-th sequence.
+    Because of the way the thinning function works, duplicate names may mess with the usual
+    application of this function in unforeseeable ways!
+    
+    PARAMS
+    ------
+    fn_tree: str; filename of tree file. Need not be rooted or aligned. 
+    interval_n: int; thinning parameter, so as to include or exclude the interval_n-th sequence.
+    incl: bool; whether to include (set to True) or exclude (set to False) the n-th sequence
+    outgroup_nm: str; name of outgroup. If set to an empty string, midpoint root. 
+    verbose: Bool; verbosity parameter.
+    
+    RETURNS
+    -------
+    names_ls2: thinned list of sequence names.
+    
+    NOTE: Biopython's ladderize function is different to Figtree's, so the positions of
+    entire clades may be swapped, though the tree is still exactly the same; just displayed
+    differently. 
+    """
+    
+    # Read a tree to get an ordered list of names
+    tree = Phylo.read(fn_tree, "newick")
+    if outgroup_nm != "":
+        tree.root_with_outgroup({'name': outgroup_nm})
+    else:
+        tree.root_at_midpoint()
+    tree.ladderize(reverse=True) # Sort increasing
+
+    # Get names ordered from top to bottom on a ladderized (increasing) tree
+    names_ls = [x.name for x in tree.get_terminals()]
+    
+    # Check for duplicate names
+    for nm in list(set(names_ls)):
+        if names_ls.count(nm) > 1:
+            print("WARNING: tipname %s duplicated in input tree!" % nm)
+
+    # Filter for every n-th sequence
+    incl = True
+    names_ls2 = []
+    for i in range(len(names_ls)):
+        # Thin
+        # include every n-th seq
+        if incl:
+            if i%interval_n == 0:
+                names_ls2.append(names_ls[i])
+        # exclude every n-th seq
+        elif incl == False:
+            if i%interval_n != 0:
+                names_ls2.append(names_ls[i])
+                
+    # Append the outgroup, if one was specified
+    if (outgroup_nm != "") and (outgroup_nm not in names_ls):
+        names_ls2.append(outgroup_nm)
+    
+    if verbose:
+        print("%s names reduced to %s" % (len(names_ls), len(names_ls2)))
+        
+    return names_ls2
