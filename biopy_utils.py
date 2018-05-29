@@ -209,7 +209,7 @@ def _check_value_in_list(th, ls):
     return ls_bool
 
 
-def thin_tree(fn_tree, interval_n, incl, outgroup_nm="", verbose=True):
+def thin_tree(fn_tree, interval_n, incl, incl_outgroup, outgroup_nm="", verbose=True):
     """Thins a rooted, ladderized tree by selecting/excluding every n-th sequence.
     Because of the way the thinning function works, duplicate names may mess with the usual
     application of this function in unforeseeable ways!
@@ -219,6 +219,7 @@ def thin_tree(fn_tree, interval_n, incl, outgroup_nm="", verbose=True):
     fn_tree: str; filename of tree file. Need not be rooted or aligned. 
     interval_n: int; thinning parameter, so as to include or exclude the interval_n-th sequence.
     incl: bool; whether to include (set to True) or exclude (set to False) the n-th sequence
+    incl_outgroup: bool; whether to include the ougroup in the final output. 
     outgroup_nm: str; name of outgroup. If set to an empty string, midpoint root. 
     verbose: Bool; verbosity parameter.
     
@@ -248,7 +249,6 @@ def thin_tree(fn_tree, interval_n, incl, outgroup_nm="", verbose=True):
             print("WARNING: tipname %s duplicated in input tree!" % nm)
 
     # Filter for every n-th sequence
-    incl = True
     names_ls2 = []
     for i in range(len(names_ls)):
         # Thin
@@ -257,13 +257,14 @@ def thin_tree(fn_tree, interval_n, incl, outgroup_nm="", verbose=True):
             if i%interval_n == 0:
                 names_ls2.append(names_ls[i])
         # exclude every n-th seq
-        elif incl == False:
+        else:
             if i%interval_n != 0:
                 names_ls2.append(names_ls[i])
                 
     # Append the outgroup, if one was specified
-    if (outgroup_nm != "") and (outgroup_nm not in names_ls):
-        names_ls2.append(outgroup_nm)
+    if incl_outgroup:
+        if (outgroup_nm != "") and (outgroup_nm not in names_ls):
+            names_ls2.append(outgroup_nm)
     
     if verbose:
         print("%s names reduced to %s" % (len(names_ls), len(names_ls2)))

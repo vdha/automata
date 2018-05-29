@@ -5,6 +5,7 @@ some data wrangling tools.
 import os
 import pandas as pd
 import numpy as np
+from math import factorial
 
 from Bio import SeqIO
 

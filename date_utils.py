@@ -76,7 +76,7 @@ def format_date(dmy, input_date_fmt="%d/%m/%y"):
     datum: str; a date in the format yyyy-mm-dd
     """
     if dmy.count("/") == 2:
-        datum = datetime.datetime.strptime(dmy, "%d/%m/%y")
+        datum = datetime.datetime.strptime(dmy, input_date_fmt)
         datum = str(datum)[:10]
     elif dmy.count("/") == 1:
         datum = datetime.datetime.strptime(dmy, "%m/%y")
