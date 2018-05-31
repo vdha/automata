@@ -209,7 +209,7 @@ def _check_value_in_list(th, ls):
     return ls_bool
 
 
-def thin_tree(fn_tree, interval_n, incl, incl_outgroup, outgroup_nm="", verbose=True):
+def thin_tree(fn_tree, interval_n, incl, incl_outgroup, names_to_keep_ls=[], outgroup_nm="", verbose=True):
     """Thins a rooted, ladderized tree by selecting/excluding every n-th sequence.
     Because of the way the thinning function works, duplicate names may mess with the usual
     application of this function in unforeseeable ways!
@@ -220,6 +220,7 @@ def thin_tree(fn_tree, interval_n, incl, incl_outgroup, outgroup_nm="", verbose=
     interval_n: int; thinning parameter, so as to include or exclude the interval_n-th sequence.
     incl: bool; whether to include (set to True) or exclude (set to False) the n-th sequence
     incl_outgroup: bool; whether to include the ougroup in the final output. 
+    names_to_keep: list of str; list of names to always keep anyway.
     outgroup_nm: str; name of outgroup. If set to an empty string, midpoint root. 
     verbose: Bool; verbosity parameter.
     
@@ -242,6 +243,12 @@ def thin_tree(fn_tree, interval_n, incl, incl_outgroup, outgroup_nm="", verbose=
 
     # Get names ordered from top to bottom on a ladderized (increasing) tree
     names_ls = [x.name for x in tree.get_terminals()]
+
+    # Check the names_to_keep list
+    if len(names_to_keep_ls) > 0:
+	    for nm in names_to_keep_ls:
+	    	if nm not in names_ls:
+	    		print("WARNING: Name %s specified to be retained, but not found in tree!" % nm)
     
     # Check for duplicate names
     for nm in list(set(names_ls)):
@@ -265,6 +272,12 @@ def thin_tree(fn_tree, interval_n, incl, incl_outgroup, outgroup_nm="", verbose=
     if incl_outgroup:
         if (outgroup_nm != "") and (outgroup_nm not in names_ls):
             names_ls2.append(outgroup_nm)
+
+    # Append the names to keep
+    if len(names_to_keep_ls) > 0:
+    	for nm in names_to_keep_ls:
+	    	if nm not in names_ls2:
+	    		names_ls2.append(nm)
     
     if verbose:
         print("%s names reduced to %s" % (len(names_ls), len(names_ls2)))
