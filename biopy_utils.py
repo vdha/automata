@@ -209,7 +209,7 @@ def _check_value_in_list(th, ls):
     return ls_bool
 
 
-def thin_tree(fn_tree, interval_n, incl, incl_outgroup, names_to_keep_ls=[], outgroup_nm="", verbose=True):
+def thin_tree(fn_tree, interval_n, incl, sort_increasing=True, names_to_keep_ls=[], outgroup_nm="", verbose=True):
     """Thins a rooted, ladderized tree by selecting/excluding every n-th sequence.
     Because of the way the thinning function works, duplicate names may mess with the usual
     application of this function in unforeseeable ways!
@@ -219,7 +219,7 @@ def thin_tree(fn_tree, interval_n, incl, incl_outgroup, names_to_keep_ls=[], out
     fn_tree: str; filename of tree file. Need not be rooted or aligned. 
     interval_n: int; thinning parameter, so as to include or exclude the interval_n-th sequence.
     incl: bool; whether to include (set to True) or exclude (set to False) the n-th sequence
-    incl_outgroup: bool; whether to include the ougroup in the final output. 
+    sort_increasing: bool; whether to sort the tree in an increasing or decreasing order.
     names_to_keep: list of str; list of names to always keep anyway.
     outgroup_nm: str; name of outgroup. If set to an empty string, midpoint root. 
     verbose: Bool; verbosity parameter.
@@ -232,14 +232,31 @@ def thin_tree(fn_tree, interval_n, incl, incl_outgroup, names_to_keep_ls=[], out
     entire clades may be swapped, though the tree is still exactly the same; just displayed
     differently. 
     """
-    
-    # Read a tree to get an ordered list of names
+
+    # Read tree
+    if verbose:
+    	print("Reading tree...", end="")
     tree = Phylo.read(fn_tree, "newick")
-    if outgroup_nm != "":
-        tree.root_with_outgroup({'name': outgroup_nm})
+    if verbose:
+    	print("Done")
+
+    print("Rooting tree...")
+    # Tree operations: root and sort
+    if (outgroup_nm != "") and (outgroup_nm in names_ls):
+    	tree.root_with_outgroup({'name': outgroup_nm})
+    	if verbose:
+        	print("Outgroup detected. Rooting at outgroup...", end="")
     else:
-        tree.root_at_midpoint()
-    tree.ladderize(reverse=True) # Sort increasing
+    	tree.root_at_midpoint()
+    	if verbose:
+        	print("Rooting at midpoint...", end="")
+
+    if sort_increasing:
+    	tree.ladderize(reverse=True) # Sort increasing
+    else:
+    	tree.ladderize(reverse=False) # Sort decreasing
+    if verbose:
+    	print("Done.")
 
     # Get names ordered from top to bottom on a ladderized (increasing) tree
     names_ls = [x.name for x in tree.get_terminals()]
@@ -255,10 +272,16 @@ def thin_tree(fn_tree, interval_n, incl, incl_outgroup, names_to_keep_ls=[], out
         if names_ls.count(nm) > 1:
             print("WARNING: tipname %s duplicated in input tree!" % nm)
 
+    # Check that the supplied outgroup is in the tree
+    if outgroup_nm != "":
+    	if outgroup_nm not in names_ls:
+    		print("WARNING: Outgroup not found in tree!")
+    		print("Will root at midpoint instead.")
+
+
     # Filter for every n-th sequence
     names_ls2 = []
     for i in range(len(names_ls)):
-        # Thin
         # include every n-th seq
         if incl:
             if i%interval_n == 0:
@@ -267,11 +290,7 @@ def thin_tree(fn_tree, interval_n, incl, incl_outgroup, names_to_keep_ls=[], out
         else:
             if i%interval_n != 0:
                 names_ls2.append(names_ls[i])
-                
-    # Append the outgroup, if one was specified
-    if incl_outgroup:
-        if (outgroup_nm != "") and (outgroup_nm not in names_ls):
-            names_ls2.append(outgroup_nm)
+
 
     # Append the names to keep
     if len(names_to_keep_ls) > 0:
