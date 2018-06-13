@@ -112,6 +112,24 @@ def write_fasta(fn_out, d_in, header_cols, seq_col="seq", delimiter="|", preview
     	print("Wrote to file %s" % fn_out)
 
 
+
+def read_json(json_fn):
+    """An almost unnecessary function to read a json file, but I keep forgetting the full syntax.
+
+    Params
+    ------
+    json_fn: str; path to json file to be read into a dictionary
+
+    Returns
+    -------
+    my_json_dict: dictionary
+    """
+    with open(json_fn) as f:
+        json_str = f.read()
+    my_json_dict = json.loads(json_str)
+    return my_json_dict
+
+
 def lookup_key(my_dict, val):
     """Look up a value, val, from a dictionary of the format key:list_of_values. Values cannot appear in
     multiple lists.
