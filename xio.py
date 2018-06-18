@@ -13,6 +13,21 @@ from Bio import SeqIO
 
 def read_fasta(fn, delimiter="|", preview=0):
     """Reads a fasta into a list of lists, where each list is one record.
+    Best practice: fasta file headers comprise of different metadata columns, delimited by the specified 
+    delimiter. e.g.:
+
+    >id1|Japan|2015-05-31
+    agctagctagct
+    >id2|Australia|2016-10-20
+    agctagctagct
+    >id2|NewZealand|2014-10-25
+    agctagctagct
+
+    You can then load the output of this function into a pandas dataframe, like so:
+
+    >>contents = xio.read_fasta(input_fn.fas, delimiter="|", preview=0)
+    >>fas_cols = ["id", "country", "collection_date", "sequence"]
+    >>df = pd.DataFrame(data=contents, columns=fas_cols)
 
     Params
     ------
@@ -112,6 +127,41 @@ def write_fasta(fn_out, d_in, header_cols, seq_col="seq", delimiter="|", preview
     if verbose:
     	print("Wrote to file %s" % fn_out)
 
+
+def remove_duplicates(df, colname, seq_colname):
+    """
+    EXPERIMENTAL
+    Removes duplicate fields from df, given by "colname", breaking ties by selecting one
+    with the longest 'seq' string. Note that gaps are still counted. 
+
+    Only works for dfs with the same segment. A df with multiple segments would have in line 4:
+    >>df = df.loc[df.seq.str.len().groupby([df.colname, df.seg]).idxmax()]
+
+    In order to differentiate between segments. But that shouldn't be a problem if the segment
+    is already in 'colname'...should it? Needs unit testing!
+
+    Params
+    ------
+    df: pandas dataframe of a fasta file, probably read by read_fasta()
+    colname: column name in df to select duplicate names for.
+    seq_colname: column name of the sequence data in df to select the longest sequence by. 
+
+    Returns
+    -------
+    df: dataframe with duplicates removed.
+    """
+
+    #Why does this work? (answer from SO)
+    n_records0 = df.shape[0]
+    print("Initial no. of records = %s" % len(df))
+    n_uq0 = len(set(df[colname]))
+    df = df.loc[df[seq_colname].str.len().groupby([df[colname]]).idxmax()]
+    n_records1 = df.shape[0]
+    n_uq1 = len(set(df[colname]))
+    print("n_unique name_ids (before, after) = %s, %s" % (n_uq0, n_uq1))
+    print("No. of records discarded = %s" % (n_records0-n_records1))
+
+    return df
 
 
 def read_json(json_fn):
