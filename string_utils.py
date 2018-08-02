@@ -7,6 +7,42 @@ import re
 from Bio import SeqIO
 
 
+def get_special_characters(my_string):
+	"""Returns all unique characters of an input string that aren't alphanumeric characters.
+
+	Params
+    ------
+    my_string: str; any input string
+
+    Returns
+    -------
+    letters_ls: list of string; list of all unique special characters.
+	"""
+    letters_ls = list(set(list(re.sub(r'[a-zA-Z0-9]', '', my_string))))
+    return letters_ls
+
+def check_df_headers(df, colname="header"):
+	"""Check dataframe headers for special characters. 
+	Note: only tells you what characters exist; not what the offending headers are. 
+
+	Params
+    ------
+    df: input pandas dataframe
+    colname: column name of df to scan for special characters.
+
+    Returns
+    -------
+    charset_ls: list of string; list of all unique special characters.
+	"""
+	charset_ls = []
+	for index, row in df.iterrows():
+	    charset_ls.append(get_special_char(str(row[colname])))
+
+	charset_ls = set([x for y in charset_ls for x in y])
+
+	return charset_ls
+
+
 def choose_string_sections(seq, coords_ls):
     """Given a sequence seq, extract the relevant portions using the coords given in coords_ls. 
     Hasn't been used for quite awhile, though.
