@@ -112,6 +112,13 @@ def get_clade_labels(my_tree, ref_names_ls, verbose=True):
 
     # Get all tipnames
     names_ls = [x.name for x in my_tree.get_terminals()]
+    # Biopython has an annoying habit of reading tipnames with additional quotes
+    # like so: "'tipname/2002'"
+    # remove these if present
+    # overrides names_ls in-place
+    for i in range(len(names_ls)):
+        if (names_ls[i][0] == "'") and (names_ls[i][-1] == "'"):
+            names_ls[i] = names_ls[i][1:-1]
 
     # Check
     for ref_nm in ref_names_ls:
