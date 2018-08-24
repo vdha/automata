@@ -14,8 +14,32 @@ import xio
 from Bio import Phylo
 
 
+def get_leaf(my_tree, tipname):
+    """retrieves a tip object from `my_tree`, given its name.
+    Robust to Bio.Phylo's annoying habit of adding additional quotes to
+    tipname strings.
+
+    PARAMS
+    ------
+    my_tree: Bio.Phylo tree object
+    tipname: str; tip name. 
+
+    RETURNS
+    -------
+    lf0: Bio.Phylo clade object, where lf0.name is the input tipname.
+    """
+    clades_ls = my_tree.get_terminals
+
+    for lf in my_tree.get_terminals():
+        if tipname in lf.name:
+            lf0 = lf
+
+    return lf0
+
+
 def prep_nexus_contents(tree_string):
     """Preps a nexus format around a tree string.
+    Is this actually necessary?
     """
 
     d_nodes = get_tree_names(tree_string, verbose=False)
@@ -36,24 +60,24 @@ def prep_nexus_contents(tree_string):
     return nex_contents
 
 
-def tip_to_tip_distance(my_tree, tip1, tip2):
+def tip_to_tip_distance(my_tree, tipname1, tipname2):
     """Computes the tip-to-mrca-to-tip distance between tip1 and tip2.
 
     PARAMS
     ------
     my_tree: biopython tree object.
-    tip1, tip2: biopython Clade objects
+    tipname1, tipname2: str; tipnames. 
 
     RETURNS
     -------
     tt_dist: float. tip-to-mrca-to-tip distance between tip1 and tip2.
     """
 
-    mrca = my_tree.common_ancestor(tip1, tip2)
-    t1_mrca_dist = my_tree.distance(tip1, mrca)
-    t2_mrca_dist = my_tree.distance(tip2, mrca)
+    lf1=get_leaf(my_tree, tipname1)
+    lf2=get_leaf(my_tree, tipname2)
 
-    tt_dist = t1_mrca_dist + t2_mrca_dist
+    tt_dist = my_tree.distance(lf1, lf2)
+    
     return tt_dist
 
 
