@@ -21,6 +21,7 @@ def get_special_characters(my_string):
     letters_ls = list(set(list(re.sub(r'[a-zA-Z0-9]', '', my_string))))
     return letters_ls
 
+
 def check_df_headers(df, colname="header"):
 	"""Check dataframe headers for special characters. 
 	Note: only tells you what characters exist; not what the offending headers are. 

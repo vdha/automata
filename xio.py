@@ -66,6 +66,44 @@ def read_fasta(fn, delimiter="|", preview=0):
     return contents
 
 
+def read_beast_logfile(fn, burnin=0.1):
+    """Reads a BEAST output log file into a table. Ignores all the stuff on top; goes straight
+    to the table. Verified for BEAST2.5. 
+    
+    PARAMS
+    ------
+    fn: str; input file name
+    burnin: float between 0 and 1; percentage burnin. 
+    
+    OUTPUT
+    ------
+    df: pandas dataframe. 
+    """
+    
+    with open(fn) as f:
+        contents = f.readlines()
+    contents = [x.strip() for x in contents]
+
+    # Retrieve only the logger contents
+    contents2 = []
+    log_bool = False
+    for line in contents:
+        if "Sample" in line:
+            log_bool = True
+        if log_bool:
+            contents2.append(line)
+    contents2 = [x.split("\t") for x in contents2]
+
+    # Remove burnin - first 10% of rows
+    n_burnin = round(len(contents2)*burnin)
+
+    # Put it in a df
+    df = pd.DataFrame(data=contents2[n_burnin:], columns=contents2[0])
+    
+    return df
+
+
+
 def prep_fasta_contents(d0_in, header_cols, seq_col='seq', delimiter="|", preview=0):
     """Reads a dataframe into a list of lists, in fasta format.
 
